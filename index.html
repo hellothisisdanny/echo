@@ -165,16 +165,19 @@
       <span class="demo-flag">VENUES = DEMO DATA</span>
     </div>
     <div class="chips" style="margin-top:8px">
-      <span class="chip sm on">LIVE</span><span class="chip sm">VENUES</span><span class="chip sm">FRIENDS</span><span class="chip sm">DROPS</span>
+      <span class="chip sm" id="f-live" onclick="toggleMapFilter('live',this)">● LIVE ONLY</span>
+      <span class="chip sm on" id="f-venues" onclick="toggleMapFilter('venues',this)">VENUES</span>
+      <span class="chip sm on" id="f-friends" onclick="toggleMapFilter('friends',this)">FRIENDS</span>
+      <span class="chip sm on" id="f-drops" onclick="toggleMapFilter('drops',this)">DROPS</span>
     </div>
   </div>
   <div class="map-overlay-bottom">
-    <div class="panel rl">
+    <div class="panel rl" style="cursor:pointer" onclick="window.open('https://open.spotify.com/search/'+encodeURIComponent('Make Luv Room 5'),'_blank')">
       <div class="art"></div>
       <div class="grow">
-        <div class="rl" style="gap:6px"><span class="mono acc" style="font-size:10px"><span class="pulse"></span>ON NOW</span><span class="mono muted" style="font-size:10px">CLUB NOX · 243</span></div>
-        <div class="ell" style="font-weight:700; font-size:13px">Spastik</div>
-        <div class="ell muted" style="font-size:11px">Plastikman</div>
+        <div class="rl" style="gap:6px"><span class="mono acc" style="font-size:10px"><span class="pulse"></span>ON NOW</span><span class="mono muted" style="font-size:10px">NOWADAYS · 187</span></div>
+        <div class="ell" style="font-weight:700; font-size:13px">Make Luv</div>
+        <div class="ell muted" style="font-size:11px">Room 5, Oliver Cheatham · tap to play ↗</div>
       </div>
       <div class="wave"><i></i><i></i><i></i><i></i></div>
     </div>
@@ -186,32 +189,38 @@
   <div class="wrap">
     <div class="rl"><div class="h h1">Now<br>Playing</div><div class="grow"></div><span class="demo-flag">DEMO DATA</span></div>
     <div style="margin-top:16px">
-      <div class="frow" style="--g:linear-gradient(135deg,#b56576,#e56b6f)">
+      <div class="frow" style="--g:linear-gradient(135deg,#b56576,#e56b6f); cursor:pointer" onclick="window.open(spo('Groovejet If This Aint Love Spiller'),'_blank')">
         <span class="t live">21:39</span><div class="av"></div>
-        <div class="grow"><div class="fname">MARIA <span>Lisboa</span></div><div class="fsong ell">Fado da Madrugada — Carminho</div></div>
+        <div class="grow"><div class="fname">MARIA <span>McCarren Park</span></div><div class="fsong ell">Groovejet (If This Ain't Love) — Spiller, Sophie Ellis-Bextor</div></div>
         <div class="wave"><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="frow" style="--g:linear-gradient(135deg,#5a3d1a,#d9a066)">
+      <div class="frow" style="--g:linear-gradient(135deg,#5a3d1a,#d9a066); cursor:pointer" onclick="window.open(spo('All My Friends Channel Tres'),'_blank')">
         <span class="t live">21:35</span><div class="av"></div>
-        <div class="grow"><div class="fname">JONAS <span>at Tresor</span></div><div class="fsong ell">Acid Tracks — Phuture</div></div>
+        <div class="grow"><div class="fname">JONAS <span>at Nowadays</span></div><div class="fsong ell">All My Friends — Channel Tres</div></div>
         <div class="wave"><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="frow" style="--g:linear-gradient(135deg,#3b4a3a,#9dbf9e)">
+      <div class="frow" style="--g:linear-gradient(135deg,#3b4a3a,#9dbf9e); cursor:pointer" onclick="window.open(spo('Groove Is in the Heart Deee-Lite'),'_blank')">
         <span class="t">21:02</span><div class="av"></div>
-        <div class="grow"><div class="fname">LU <span>Roma</span></div><div class="fsong ell">Tezeta — Mulatu Astatke</div></div>
+        <div class="grow"><div class="fname">LU <span>Roma</span></div><div class="fsong ell">Groove Is in the Heart — Deee-Lite</div></div>
         <span class="mono muted">↗</span>
       </div>
-      <div class="frow" style="--g:linear-gradient(135deg,#2b2b2b,#7a7a7a)">
+      <div class="frow" style="--g:linear-gradient(135deg,#2b2b2b,#7a7a7a); cursor:pointer" onclick="window.open(spo('Alice Alice Coltrane'),'_blank')">
         <span class="t">19:12</span><div class="av"></div>
         <div class="grow"><div class="fname">FOUR TET <span>studio</span></div><div class="fsong ell">Alice — Alice Coltrane · 6× today</div></div>
         <span class="mono muted">↗</span>
       </div>
-      <div class="frow" style="--g:linear-gradient(135deg,#1d1d1d,#4c4c4c)">
-        <span class="t">18:40</span><div class="av"></div>
-        <div class="grow"><div class="fname">PANORAMA BAR <span>set started</span></div><div class="fsong ell">412 listening along</div></div>
+      <div class="frow" style="--g:linear-gradient(135deg,#1a3a5f,#6ea8fe); cursor:pointer" onclick="window.open(spo('Twist and Shout Remastered The Beatles'),'_blank')">
+        <span class="t">18:55</span><div class="av"></div>
+        <div class="grow"><div class="fname">SAM <span>Madrid</span></div><div class="fsong ell">Twist and Shout — The Beatles</div></div>
+        <span class="mono muted">↗</span>
+      </div>
+      <div class="frow" style="--g:linear-gradient(135deg,#1d1d1d,#4c4c4c); cursor:pointer" onclick="window.open(spo('Le Freak CHIC'),'_blank')">
+        <span class="t live">18:40</span><div class="av"></div>
+        <div class="grow"><div class="fname">OUTER HEAVEN <span>set started</span></div><div class="fsong ell">Le Freak — CHIC · 51 listening along</div></div>
+        <div class="wave"><i></i><i></i><i></i><i></i></div>
       </div>
     </div>
-    <p class="hint" style="margin-top:16px">This feed is a preview of the live-listening layer (needs the Spotify integration phase). The Drops tab is the part that already works for real.</p>
+    <p class="hint" style="margin-top:16px">Tap any row to open the song in Spotify. This feed is a preview of the live-listening layer (needs the Spotify integration phase). The Drops tab is the part that already works for real.</p>
   </div>
 </div>
 
@@ -245,9 +254,9 @@
       <span class="chip sm">👻 GHOST</span>
     </div>
     <div class="h h3" style="margin:24px 0 4px; color:var(--accent)">Top of your charts · this week</div>
-    <div class="crow" style="--g:linear-gradient(135deg,#1f3a5f,#6ea8fe)"><span class="rank">1</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">NIGHTS</div><div class="ell fsong">Frank Ocean · 41 plays</div></div><span class="m">▲ 2</span></div>
-    <div class="crow" style="--g:linear-gradient(135deg,#5a1a1a,#c94b4b)"><span class="rank">2</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">CRANES IN THE SKY</div><div class="ell fsong">Solange · 27 plays</div></div><span class="m">NEW</span></div>
-    <div class="crow" style="--g:linear-gradient(135deg,#1a2a1a,#5ba36a)"><span class="rank">3</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">PINK + WHITE</div><div class="ell fsong">Frank Ocean · 19 plays</div></div><span class="m">▼ 1</span></div>
+    <div class="crow" style="--g:linear-gradient(135deg,#1f3a5f,#6ea8fe); cursor:pointer" onclick="window.open(spo('Kerala Bonobo'),'_blank')"><span class="rank">1</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">KERALA</div><div class="ell fsong">Bonobo · 41 plays</div></div><span class="m">▲ 2</span></div>
+    <div class="crow" style="--g:linear-gradient(135deg,#5a1a1a,#c94b4b); cursor:pointer" onclick="window.open(spo('Si Te Portas Bonito Sofia Kourtesis'),'_blank')"><span class="rank">2</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">SI TE PORTAS BONITO</div><div class="ell fsong">Sofia Kourtesis · 27 plays</div></div><span class="m">NEW</span></div>
+    <div class="crow" style="--g:linear-gradient(135deg,#1a2a1a,#5ba36a); cursor:pointer" onclick="window.open(spo('Twist and Shout Remastered The Beatles'),'_blank')"><span class="rank">3</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">TWIST AND SHOUT</div><div class="ell fsong">The Beatles · 19 plays</div></div><span class="m">▼ 1</span></div>
     <p class="hint" style="margin-top:16px">Charts and sharing controls are placeholders — they light up when we connect Spotify accounts in the next phase.</p>
   </div>
 </div>
@@ -519,44 +528,86 @@ function renderDrops(){
 }
 
 /* ================= main map tab ================= */
-let mainmap=null;
-function initMainMap(){
-  if(mainmap){ mainmap.invalidateSize(); return; }
-  mainmap=L.map('mainmap',{zoomControl:false}).setView([40.4168,-3.7038],14);
-  L.tileLayer(DARK_TILES,TILE_OPTS).addTo(mainmap);
-  const seed=(lat,lng)=>{
-    const venues=[
-      {n:'CLUB NOX', s:'Spastik — Plastikman', c:243, dx:.006, dy:.004, live:true},
-      {n:'BAR MARY', s:'Tezeta — Mulatu Astatke', c:58, dx:-.007, dy:.003, live:true},
-      {n:'LA CAVERNA', s:'set starts 23:00', c:0, dx:.003, dy:-.007, live:false}
-    ];
-    venues.forEach(v=>{
-      const m=L.circleMarker([lat+v.dy,lng+v.dx],{radius:9, color:v.live?'#ff2e63':'#555', weight:2, fillColor:v.live?'#ff2e63':'#333', fillOpacity:.85}).addTo(mainmap);
-      m.bindPopup('<b>'+v.n+'</b> <span style="color:#e9c46a;font-size:9px">DEMO</span><br><span style="color:'+(v.live?'#ff2e63':'#8c8c8c')+'">'+(v.live?'● LIVE — ':'')+v.s+'</span>'+(v.c?'<br><span style="color:#8c8c8c">'+v.c+' listening</span>':''));
+let mainmap=null, venuesG=null, friendsG=null, dropsG=null;
+const MF={live:false, venues:true, friends:true, drops:true};
+function spo(q){ return 'https://open.spotify.com/search/'+encodeURIComponent(q); }
+function playLink(t,a,color){ return '<a href="'+spo(t+' '+a)+'" target="_blank" style="color:'+(color||'#3ddc84')+';font-weight:700;text-decoration:none">▶ PLAY ON SPOTIFY</a>'; }
+const DEMOTAG=' <span style="color:#e9c46a;font-size:9px">DEMO</span>';
+/* Real NYC venues (geocoded); live/upcoming grounded on the actual RA/DICE weekend: 
+   Chloé Caillet FRI + Eli Escobar SUN at Knockdown's Ruins, Felix Cartal SAT at House of Yes */
+const NYC_VENUES=[
+  {n:'SIGNAL', la:40.71014, ln:-73.93355, live:true, c:243, t:'Baddy On The Floor', a:'Jamie xx, Honey Dijon'},
+  {n:'NOWADAYS', la:40.69245, ln:-73.90151, live:true, c:187, t:'Make Luv', a:'Room 5, Oliver Cheatham'},
+  {n:'H0L0', la:40.69433, ln:-73.90214, live:true, c:64, t:'Yo Yo Get Funky', a:'Fast Eddie'},
+  {n:'333 STAGG', la:40.71034, ln:-73.93566, live:true, c:98, t:'My Hood', a:'Dennis Cruz, LEON (Italy)'},
+  {n:'OUTER HEAVEN', la:40.72200, ln:-73.99227, live:true, c:51, t:'Le Freak', a:'CHIC'},
+  {n:'BOSSA NOVA CIVIC CLUB', la:40.69798, ln:-73.92796, live:true, c:112, t:'Groove Is in the Heart', a:'Deee-Lite'},
+  {n:'PUBLIC RECORDS', la:40.68217, ln:-73.98639, live:true, c:76, t:'Kerala', a:'Bonobo'},
+  {n:'KNOCKDOWN CENTER', la:40.71528, ln:-73.91367, live:false, when:'FRI Chloé Caillet · SUN Eli Escobar (The Ruins)'},
+  {n:'HOUSE OF YES', la:40.70678, ln:-73.92358, live:false, when:'SAT Felix Cartal + Makèz'},
+  {n:'ELSEWHERE', la:40.70948, ln:-73.92324, live:false, when:'Doors 23:00'}
+];
+const NYC_FRIENDS=[
+  {n:'MARIA', la:40.7208, ln:-73.9520, live:true, t:"Groovejet (If This Ain't Love)", a:'Spiller, Sophie Ellis-Bextor', w:'McCarren Park'},
+  {n:'JONAS', la:40.6930, ln:-73.9040, live:true, t:'All My Friends', a:'Channel Tres', w:'near Nowadays'}
+];
+const NYC_DROPS=[
+  {f:'MARIA', la:40.7145, ln:-73.9670, w:'Domino Park'},
+  {f:'SAM', la:40.7308, ln:-73.9973, w:'Washington Square Park'}
+];
+function toggleMapFilter(k, el){ MF[k]=!MF[k]; el.classList.toggle('on', MF[k]); applyMapFilters(); }
+function applyMapFilters(){
+  if(!mainmap) return;
+  venuesG.clearLayers(); friendsG.clearLayers(); dropsG.clearLayers();
+  if(MF.venues) NYC_VENUES.forEach(v=>{
+    if(MF.live && !v.live) return;
+    const m=L.circleMarker([v.la,v.ln],{radius:9, color:v.live?'#ff2e63':'#5a2230', weight:2, fillColor:v.live?'#ff2e63':'#3a1620', fillOpacity:.9});
+    m.bindPopup('<b>'+v.n+'</b>'+DEMOTAG+'<br>'+(v.live
+      ? '<span style="color:#ff2e63">● LIVE — '+v.t+' — '+v.a+'</span><br><span style="color:#8c8c8c">'+v.c+' listening</span><br>'+playLink(v.t,v.a)
+      : '<span style="color:#8c8c8c">'+v.when+'</span>'));
+    venuesG.addLayer(m);
+  });
+  if(MF.friends) NYC_FRIENDS.forEach(f=>{
+    if(MF.live && !f.live) return;
+    const m=L.circleMarker([f.la,f.ln],{radius:8, color:'#e9c46a', weight:2, fillColor:'#e9c46a', fillOpacity:.9});
+    m.bindPopup('<b>'+f.n+'</b>'+DEMOTAG+'<br><span style="color:#e9c46a">● listening live · '+f.w+'</span><br>'+f.t+' — '+f.a+'<br>'+playLink(f.t,f.a));
+    friendsG.addLayer(m);
+  });
+  if(MF.drops){
+    NYC_DROPS.forEach(d=>{
+      const m=L.circleMarker([d.la,d.ln],{radius:8, color:'#fff', weight:2, fillColor:'#0e0e0e', fillOpacity:1});
+      m.bindPopup('<b>🔒 Drop from '+d.f+'</b>'+DEMOTAG+'<br><span style="color:#8c8c8c">Locked to '+d.w+' — walk there to unlock</span>');
+      dropsG.addLayer(m);
     });
-    const fm=L.circleMarker([lat-.004,lng-.005],{radius:8, color:'#fff', weight:2, fillColor:'#4aa3ff', fillOpacity:1}).addTo(mainmap);
-    fm.bindPopup('<b>MARIA</b> <span style="color:#e9c46a;font-size:9px">DEMO</span><br><span style="color:#ff2e63">● listening live</span><br>Fado da Madrugada — Carminho');
     loadList('echo_received').forEach(d=>{
       try{ const p=normalizeDrop(dec(d.link.slice(d.link.indexOf('#d=')+3)));
         const un=localStorage.getItem(dropKeyFor(d.link));
-        const mk=L.marker([p.la,p.ln]).addTo(mainmap);
+        const mk=L.marker([p.la,p.ln]);
         mk.bindPopup('<b>'+(un?'🔓':'🔒')+' Drop from '+(p.f||'?')+'</b><br>'+(un?'Unlocked — open it from the Drops tab':'Walk there to unlock'));
+        dropsG.addLayer(mk);
       }catch(e){}
     });
-  };
+  }
+}
+function initMainMap(){
+  if(mainmap){ mainmap.invalidateSize(); return; }
+  mainmap=L.map('mainmap',{zoomControl:false}).setView([40.7080,-73.9350],13);
+  L.tileLayer(DARK_TILES,TILE_OPTS).addTo(mainmap);
+  venuesG=L.layerGroup().addTo(mainmap);
+  friendsG=L.layerGroup().addTo(mainmap);
+  dropsG=L.layerGroup().addTo(mainmap);
+  applyMapFilters();
   if(navigator.geolocation) navigator.geolocation.getCurrentPosition(
-    p=>{ mainmap.setView([p.coords.latitude,p.coords.longitude],14);
-      L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:7,color:'#fff',weight:2,fillColor:'#4aa3ff',fillOpacity:1}).addTo(mainmap).bindPopup('You');
-      seed(p.coords.latitude,p.coords.longitude); },
-    ()=>seed(40.4168,-3.7038), {timeout:5000});
-  else seed(40.4168,-3.7038);
+    p=>{ L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:7,color:'#fff',weight:2,fillColor:'#4aa3ff',fillOpacity:1}).addTo(mainmap).bindPopup('<b>YOU</b>');
+      mainmap.setView([p.coords.latitude,p.coords.longitude],13); },
+    ()=>{}, {timeout:5000});
 }
 
 /* ================= compose ================= */
 let cmap=null, cmarker=null, ccircle=null, cpos=null, cradius=200, cexp=24, csong=null;
 function initComposeMap(){
   if(cmap){ cmap.invalidateSize(); return; }
-  cmap=L.map('map',{zoomControl:false}).setView([40.4168,-3.7038],13);
+  cmap=L.map('map',{zoomControl:false}).setView([40.7100,-73.9350],13);
   L.tileLayer(DARK_TILES,TILE_OPTS).addTo(cmap);
   cmap.on('click',e=>setPin(e.latlng.lat,e.latlng.lng));
   navigator.geolocation && navigator.geolocation.getCurrentPosition(p=>cmap.setView([p.coords.latitude,p.coords.longitude],15),()=>{},{timeout:4000});
@@ -664,7 +715,7 @@ function initReceive(){
   if(Date.now()>drop.x){ $('e-sub').textContent=(drop.f||'Someone')+' dropped you a song. It expired before you got there.'; show('v-expired'); return; }
   $('r-sub').textContent=('A SONG FROM '+(drop.f||'?')+' · FOR '+(drop.t||'YOU')).toUpperCase();
   $('r-zone').textContent='ZONE '+(drop.r>=1000?(drop.r/1000)+' KM':drop.r+' M');
-  $('r-directions').href='https://maps.apple.com/?daddr='+drop.la+','+drop.ln;
+  $('r-directions').href='https://www.google.com/maps/dir/?api=1&destination='+drop.la+','+drop.ln+'&travelmode=walking';
   if(location.search.indexOf('dev=1')>=0) $('r-dev').style.display='block';
   tickCountdown(); setInterval(tickCountdown,30000);
   show('v-locked');
