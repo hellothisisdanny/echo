@@ -62,6 +62,7 @@
   .leaflet-container{background:#121212; font-family:var(--body);}
   .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) saturate(.3) brightness(.85) contrast(1.05);}
   .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#181818; color:#fff; border-radius:0; border:1px solid var(--line);}
+  .dropicon{background:none; border:none; filter:drop-shadow(0 3px 6px rgba(0,0,0,.55));}
   .leaflet-popup-content{font-family:var(--body); font-size:12px; margin:10px 12px;}
 
   .ticket{background:var(--accent); color:#fff; padding:16px; margin-top:16px; position:relative;}
@@ -531,6 +532,18 @@ function renderDrops(){
 let mainmap=null, venuesG=null, friendsG=null, dropsG=null;
 const MF={live:false, venues:true, friends:true, drops:true};
 function spo(q){ return 'https://open.spotify.com/search/'+encodeURIComponent(q); }
+/* 9E Wave Pin + lock chip — the drop marker */
+function dropIconSVG(state){
+  const bars='<rect x="36" y="35" width="4.5" height="13" rx="2" fill="#fff"/><rect x="43" y="28" width="4.5" height="26" rx="2" fill="#fff"/><rect x="50" y="33" width="4.5" height="17" rx="2" fill="#fff"/><rect x="57" y="36" width="4.5" height="11" rx="2" fill="#fff"/>';
+  const chip = state==='unlocked'
+    ? '<circle cx="71" cy="79" r="13" fill="#3ddc84"/><path d="M66 78 v-4.5 a5 5 0 0 1 10 0" fill="none" stroke="#0e0e0e" stroke-width="2.6"/><rect x="64.5" y="78" width="13" height="9.5" rx="1" fill="#0e0e0e"/>'
+    : '<circle cx="71" cy="79" r="13" fill="#fff"/><path d="M66 78 v-2.5 a5 5 0 0 1 10 0 v2.5" fill="none" stroke="#ff2e63" stroke-width="2.6"/><rect x="64.5" y="78" width="13" height="9.5" rx="1" fill="#ff2e63"/>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 96 L33 62 A29 29 0 1 1 67 62 Z" fill="#ff2e63"/>'+bars+chip+'</svg>';
+}
+function dropIcon(state, px){
+  px = px||38;
+  return L.divIcon({className:'dropicon', html:dropIconSVG(state), iconSize:[px,px], iconAnchor:[px*.5, px*.96], popupAnchor:[0, -px*.9]});
+}
 function playLink(t,a,color){ return '<a href="'+spo(t+' '+a)+'" target="_blank" style="color:'+(color||'#3ddc84')+';font-weight:700;text-decoration:none">▶ PLAY ON SPOTIFY</a>'; }
 const DEMOTAG=' <span style="color:#e9c46a;font-size:9px">DEMO</span>';
 /* Real NYC venues (geocoded); live/upcoming grounded on the actual RA/DICE weekend: 
@@ -543,13 +556,20 @@ const NYC_VENUES=[
   {n:'OUTER HEAVEN', la:40.72200, ln:-73.99227, live:true, c:51, t:'Le Freak', a:'CHIC'},
   {n:'BOSSA NOVA CIVIC CLUB', la:40.69798, ln:-73.92796, live:true, c:112, t:'Groove Is in the Heart', a:'Deee-Lite'},
   {n:'PUBLIC RECORDS', la:40.68217, ln:-73.98639, live:true, c:76, t:'Kerala', a:'Bonobo'},
+  {n:'LE BAIN', la:40.74093, ln:-74.00776, live:true, c:134, t:'Je Suis Music', a:'Cerrone, Armand Van Helden'},
+  {n:'NUBLU 151', la:40.72639, ln:-73.97879, live:true, c:42, t:'Tezeta', a:'Mulatu Astatke'},
+  {n:'BLUE NOTE', la:40.73085, ln:-74.00066, live:true, c:88, t:'My Favorite Things', a:'John Coltrane'},
+  {n:"PAUL'S CASABLANCA", la:40.72552, ln:-74.00600, live:true, c:67, t:'La Dueña Del Swing', a:'Los Hermanos Rosario'},
   {n:'KNOCKDOWN CENTER', la:40.71528, ln:-73.91367, live:false, when:'FRI Chloé Caillet · SUN Eli Escobar (The Ruins)'},
   {n:'HOUSE OF YES', la:40.70678, ln:-73.92358, live:false, when:'SAT Felix Cartal + Makèz'},
   {n:'ELSEWHERE', la:40.70948, ln:-73.92324, live:false, when:'Doors 23:00'}
 ];
 const NYC_FRIENDS=[
   {n:'MARIA', la:40.7208, ln:-73.9520, live:true, t:"Groovejet (If This Ain't Love)", a:'Spiller, Sophie Ellis-Bextor', w:'McCarren Park'},
-  {n:'JONAS', la:40.6930, ln:-73.9040, live:true, t:'All My Friends', a:'Channel Tres', w:'near Nowadays'}
+  {n:'JONAS', la:40.6930, ln:-73.9040, live:true, t:'All My Friends', a:'Channel Tres', w:'near Nowadays'},
+  {n:'SOFIA', la:40.7266, ln:-73.9816, live:true, t:'Dreams', a:'Fleetwood Mac', w:'Tompkins Square'},
+  {n:'DEV', la:40.7220, ln:-73.9875, live:true, t:'Nights', a:'Frank Ocean', w:'Ludlow St'},
+  {n:'ROSE', la:40.7063, ln:-74.0035, live:false, t:'September', a:'Earth, Wind & Fire', w:'Seaport'}
 ];
 const NYC_DROPS=[
   {f:'MARIA', la:40.7145, ln:-73.9670, w:'Domino Park'},
@@ -570,19 +590,19 @@ function applyMapFilters(){
   if(MF.friends) NYC_FRIENDS.forEach(f=>{
     if(MF.live && !f.live) return;
     const m=L.circleMarker([f.la,f.ln],{radius:8, color:'#e9c46a', weight:2, fillColor:'#e9c46a', fillOpacity:.9});
-    m.bindPopup('<b>'+f.n+'</b>'+DEMOTAG+'<br><span style="color:#e9c46a">● listening live · '+f.w+'</span><br>'+f.t+' — '+f.a+'<br>'+playLink(f.t,f.a));
+    m.bindPopup('<b>'+f.n+'</b>'+DEMOTAG+'<br><span style="color:#e9c46a">'+(f.live?'● listening live':'earlier today')+' · '+f.w+'</span><br>'+f.t+' — '+f.a+'<br>'+playLink(f.t,f.a));
     friendsG.addLayer(m);
   });
   if(MF.drops){
     NYC_DROPS.forEach(d=>{
-      const m=L.circleMarker([d.la,d.ln],{radius:8, color:'#fff', weight:2, fillColor:'#0e0e0e', fillOpacity:1});
+      const m=L.marker([d.la,d.ln],{icon:dropIcon('locked')});
       m.bindPopup('<b>🔒 Drop from '+d.f+'</b>'+DEMOTAG+'<br><span style="color:#8c8c8c">Locked to '+d.w+' — walk there to unlock</span>');
       dropsG.addLayer(m);
     });
     loadList('echo_received').forEach(d=>{
       try{ const p=normalizeDrop(dec(d.link.slice(d.link.indexOf('#d=')+3)));
         const un=localStorage.getItem(dropKeyFor(d.link));
-        const mk=L.marker([p.la,p.ln]);
+        const mk=L.marker([p.la,p.ln],{icon:dropIcon(un?'unlocked':'locked')});
         mk.bindPopup('<b>'+(un?'🔓':'🔒')+' Drop from '+(p.f||'?')+'</b><br>'+(un?'Unlocked — open it from the Drops tab':'Walk there to unlock'));
         dropsG.addLayer(mk);
       }catch(e){}
@@ -614,7 +634,7 @@ function initComposeMap(){
 }
 function setPin(lat,lng){
   cpos={lat,lng};
-  if(cmarker){ cmarker.setLatLng([lat,lng]); } else { cmarker=L.marker([lat,lng]).addTo(cmap); }
+  if(cmarker){ cmarker.setLatLng([lat,lng]); } else { cmarker=L.marker([lat,lng],{icon:dropIcon('locked',42)}).addTo(cmap); }
   drawCircle();
   $('c-place-label').innerHTML='📍 Pin set · unlock radius <b>'+(cradius>=1000?(cradius/1000)+' km':cradius+' m')+'</b>';
 }
@@ -723,7 +743,7 @@ function initReceive(){
     rmap=L.map('rmap',{zoomControl:false}).setView([drop.la,drop.ln],14);
     L.tileLayer(DARK_TILES,TILE_OPTS).addTo(rmap);
     L.circle([drop.la,drop.ln],{radius:drop.r,color:'#ff2e63',weight:2,fillColor:'#ff2e63',fillOpacity:.15}).addTo(rmap);
-    L.marker([drop.la,drop.ln]).addTo(rmap).bindPopup('🔒 The song lives here');
+    L.marker([drop.la,drop.ln],{icon:dropIcon('locked',46)}).addTo(rmap).bindPopup('🔒 The song lives here');
   },80);
 }
 function tickCountdown(){
