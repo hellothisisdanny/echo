@@ -339,7 +339,8 @@
     <p class="hint" style="margin-top:14px">Send this link however you like — iMessage, WhatsApp… The whole drop lives inside it. They open it, walk there, and the song unlocks.</p>
     <button class="btn white" onclick="shareLink()">SHARE THE DROP</button>
     <button class="btn ghost" onclick="copyLink()">COPY LINK</button>
-    <div class="linkbox" id="s-link"></div>
+    <div class="mono muted" style="font-size:9.5px; margin-top:10px" id="s-short-note"></div>
+    <div class="linkbox" id="s-link" style="font-size:13px; color:var(--text)"></div>
     <button class="btn ghost" style="margin-top:26px" onclick="show('v-drops'); renderDrops()">DONE</button>
   </div>
 </div>
@@ -440,6 +441,20 @@ function goHome(){ history.replaceState(null,'',location.pathname+location.searc
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 1800); }
 function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function dec(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+/* v2 compact payload: [2, from, to, msg, trackId, lat*1e5, lng*1e5, radius, expMinutesBase36] */
+function fromV2(a){ return {v:2, f:a[1], t:a[2], m:a[3], s:'https://open.spotify.com/track/'+a[4],
+  la:a[5]/1e5, ln:a[6]/1e5, r:a[7], x:parseInt(a[8],36)*60000}; }
+function normalizeDrop(d){ return (Array.isArray(d) && d[0]===2) ? fromV2(d) : d; }
+async function shorten(url){
+  try{
+    const r=await fetch('https://spoo.me/', {method:'POST',
+      headers:{'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded'},
+      body:'url='+encodeURIComponent(url)});
+    if(!r.ok) return null;
+    const j=await r.json();
+    return j.short_url ? j.short_url.replace('http://','https://') : null;
+  }catch(e){ return null; }
+}
 function haversine(a,b,c,d){ const R=6371000,rad=x=>x*Math.PI/180; const dLat=rad(c-a),dLon=rad(d-b);
   const h=Math.sin(dLat/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dLon/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
 function fmtDist(m){ return m>=1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m'; }
@@ -458,9 +473,11 @@ async function fetchMeta(url){
 /* ================= local storage of drops ================= */
 function loadList(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ return []; } }
 function saveList(k,v){ localStorage.setItem(k, JSON.stringify(v.slice(-50))); }
-function rememberSent(p, link){
+function rememberSent(p, link, short){
   const l=loadList('echo_sent');
-  if(!l.some(x=>x.link===link)) l.push({t:p.t, x:p.x, link, at:Date.now()});
+  const ex=l.find(x=>x.link===link);
+  if(ex){ if(short) ex.short=short; }
+  else l.push({t:p.t, x:p.x, link, short:short||null, at:Date.now()});
   saveList('echo_sent', l);
 }
 function rememberReceived(p, link){
@@ -495,7 +512,7 @@ function renderDrops(){
     el.innerHTML='<div class="rl"><div class="grow"><div style="font-weight:700; font-size:14px">'+who+'</div>'+
       '<div class="mono muted" style="font-size:9.5px; margin-top:3px">EXP '+fmtExp(d.x)+'</div></div>'+st+'</div>';
     el.onclick=()=>{ if(dropsMode==='rec'){ location.href=d.link; location.reload(); }
-      else { navigator.clipboard.writeText(d.link).then(()=>toast('LINK COPIED — SEND IT AGAIN')); } };
+      else { navigator.clipboard.writeText(d.short||d.link).then(()=>toast('LINK COPIED — SEND IT AGAIN')); } };
     box.appendChild(el);
   });
   if(dropsMode==='sent') box.insertAdjacentHTML('beforeend','<p class="hint">Tap a sent drop to copy its link again.</p>');
@@ -520,7 +537,7 @@ function initMainMap(){
     const fm=L.circleMarker([lat-.004,lng-.005],{radius:8, color:'#fff', weight:2, fillColor:'#4aa3ff', fillOpacity:1}).addTo(mainmap);
     fm.bindPopup('<b>MARIA</b> <span style="color:#e9c46a;font-size:9px">DEMO</span><br><span style="color:#ff2e63">● listening live</span><br>Fado da Madrugada — Carminho');
     loadList('echo_received').forEach(d=>{
-      try{ const p=dec(d.link.slice(d.link.indexOf('#d=')+3));
+      try{ const p=normalizeDrop(dec(d.link.slice(d.link.indexOf('#d=')+3)));
         const un=localStorage.getItem(dropKeyFor(d.link));
         const mk=L.marker([p.la,p.ln]).addTo(mainmap);
         mk.bindPopup('<b>'+(un?'🔓':'🔒')+' Drop from '+(p.f||'?')+'</b><br>'+(un?'Unlocked — open it from the Drops tab':'Walk there to unlock'));
@@ -600,15 +617,30 @@ function printTicket(){
   if(!cpos) errs.push('a pin on the map');
   if(errs.length){ const e=$('c-err'); e.textContent='Still missing: '+errs.join(', ')+'.'; e.style.display='block'; return; }
   $('c-err').style.display='none';
-  const payload={v:1, f:from, t:to, m:msg, s:csong,
-    la:+cpos.lat.toFixed(5), ln:+cpos.lng.toFixed(5), r:cradius, x:Date.now()+cexp*3600000};
-  const link=location.origin+location.pathname+'#d='+enc(payload);
-  rememberSent(payload, link);
+  const expMs=Date.now()+cexp*3600000;
+  /* compact v2 array payload — about half the length of the old JSON object */
+  const arr=[2, from, to, msg, trackIdFrom(csong),
+    Math.round(cpos.lat*1e5), Math.round(cpos.lng*1e5), cradius, Math.round(expMs/60000).toString(36)];
+  const payload=fromV2(arr);
+  const link=location.origin+location.pathname+'#d='+enc(arr);
+  rememberSent(payload, link, null);
   $('s-sub').textContent=('A SONG FROM '+from+' · FOR '+to).toUpperCase();
   $('s-radius').textContent='VALID WITHIN '+(cradius>=1000?(cradius/1000)+' KM':cradius+' M');
   $('s-exp').textContent='EXP '+fmtExp(payload.x);
-  $('s-link').textContent=link; window._shareLink=link;
+  window._shareLink=link;
+  $('s-link').textContent=link;
+  $('s-short-note').textContent='SHORTENING LINK…';
   show('v-share');
+  shorten(link).then(short=>{
+    if(short){
+      window._shareLink=short;
+      $('s-link').textContent=short;
+      $('s-short-note').textContent='SHORT LINK READY ✓';
+      rememberSent(payload, link, short);
+    } else {
+      $('s-short-note').textContent='SHORTENER UNAVAILABLE — FULL LINK WORKS THE SAME';
+    }
+  });
 }
 function shareLink(){
   if(navigator.share){ navigator.share({title:'I dropped you a song 🔒', text:'Go find it:', url:window._shareLink}).catch(()=>{}); }
@@ -625,7 +657,7 @@ function openPasted(){
 }
 function dropKey(){ return 'echo_unlocked_'+(location.hash||'').slice(0,60); }
 function initReceive(){
-  try{ drop=dec(location.hash.slice(3)); }catch(e){ show('v-broken'); return; }
+  try{ drop=normalizeDrop(dec(location.hash.slice(3))); }catch(e){ show('v-broken'); return; }
   if(!drop || !drop.s || drop.la==null){ show('v-broken'); return; }
   rememberReceived(drop, location.origin+location.pathname+location.hash);
   if(localStorage.getItem(dropKey())){ unlock(false); return; }
