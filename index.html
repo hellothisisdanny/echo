@@ -6,24 +6,24 @@
 <meta name="theme-color" content="#0e0e0e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>ECHO — drop a song</title>
+<title>ECHO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
   :root{
     --bg:#0e0e0e; --surface:#181818; --line:#2a2a2a; --text:#ffffff;
-    --muted:#8c8c8c; --accent:#ff2e63;
+    --muted:#8c8c8c; --accent:#ff2e63; --green:#3ddc84;
     --display:'Bebas Neue',sans-serif; --body:Inter,sans-serif; --mono:'DM Mono',monospace;
+    --tabh:58px;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; background:var(--bg); color:var(--text); font-family:var(--body);}
-  body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom); min-height:100vh;}
-  .wrap{max-width:480px; margin:0 auto; padding:18px 18px 60px;}
+  .wrap{max-width:480px; margin:0 auto; padding:calc(14px + env(safe-area-inset-top)) 18px calc(var(--tabh) + 40px + env(safe-area-inset-bottom));}
   .view{display:none;} .view.on{display:block;}
 
   .h{font-family:var(--display); letter-spacing:.01em; line-height:.95; font-weight:400;}
-  .h1{font-size:52px;} .h2{font-size:30px;} .h3{font-size:20px;}
+  .h1{font-size:46px;} .h2{font-size:30px;} .h3{font-size:20px;}
   .mono{font-family:var(--mono); font-size:11px; letter-spacing:.06em;}
   .muted{color:var(--muted);}
   .acc{color:var(--accent);}
@@ -33,7 +33,7 @@
 
   .btn{display:block; width:100%; border:none; cursor:pointer; text-align:center;
     background:var(--accent); color:#fff; font-family:var(--display); font-size:22px;
-    letter-spacing:.04em; padding:14px 18px; margin-top:12px;}
+    letter-spacing:.04em; padding:14px 18px; margin-top:12px; border-radius:0;}
   .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--text);}
   .btn.white{background:#fff; color:var(--bg);}
   .btn:disabled{opacity:.35;}
@@ -50,17 +50,19 @@
 
   .chips{display:flex; gap:8px; flex-wrap:wrap;}
   .chip{font-family:var(--mono); font-size:12px; padding:9px 14px; border:1px solid var(--line);
-    color:var(--muted); cursor:pointer; user-select:none;}
+    color:var(--muted); cursor:pointer; user-select:none; background:var(--bg);}
   .chip.on{background:#fff; color:var(--bg); border-color:#fff; font-weight:500;}
+  .chip.sm{font-size:10px; padding:5px 9px;}
 
   .songcard{background:var(--surface); border:1px solid var(--line); padding:10px; display:none; margin-top:10px;}
   .songcard.on{display:flex; align-items:center; gap:10px;}
-  .songcard img{width:52px; height:52px; object-fit:cover; display:block;}
   .songcard .ph{width:52px; height:52px; background:linear-gradient(135deg,#3a2a1a,#c98a3a); flex-shrink:0;}
 
   #map, #rmap{height:300px; border:1px solid var(--line); margin-top:6px; background:#121212;}
   .leaflet-container{background:#121212; font-family:var(--body);}
   .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) saturate(.3) brightness(.85) contrast(1.05);}
+  .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#181818; color:#fff; border-radius:0; border:1px solid var(--line);}
+  .leaflet-popup-content{font-family:var(--body); font-size:12px; margin:10px 12px;}
 
   .ticket{background:var(--accent); color:#fff; padding:16px; margin-top:16px; position:relative;}
   .ticket.white{background:#fff; color:var(--bg);}
@@ -75,7 +77,7 @@
   .linkbox{background:var(--surface); border:1px solid var(--line); padding:12px; margin-top:12px;
     font-family:var(--mono); font-size:10px; word-break:break-all; color:var(--muted); max-height:90px; overflow:auto;}
 
-  .top{display:flex; justify-content:space-between; align-items:center; padding-top:6px;}
+  .top{display:flex; justify-content:space-between; align-items:center; padding-top:2px;}
   .back{font-family:var(--mono); font-size:12px; color:var(--muted); cursor:pointer; background:none; border:none; padding:6px 0;}
   .counter{font-family:var(--mono); font-size:10px; color:var(--muted); text-align:right; margin-top:4px;}
   .hint{font-size:12px; color:var(--muted); line-height:1.5; margin-top:8px;}
@@ -83,40 +85,189 @@
   .err{color:var(--accent); font-size:12px; margin-top:6px; display:none;}
   .center{text-align:center;}
   .bigicon{font-size:44px; margin:10px 0;}
-  .pulse{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--accent);
-    animation:pulse 1.6s infinite; vertical-align:middle; margin-right:7px;}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,46,99,.6)}100%{box-shadow:0 0 0 10px transparent}}
-  .foot{margin-top:40px; text-align:center;}
-  .toast{position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:#fff; color:var(--bg);
+  .pulse{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent);
+    animation:pulse 1.6s infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,46,99,.6)}100%{box-shadow:0 0 0 9px transparent}}
+  .toast{position:fixed; left:50%; bottom:calc(var(--tabh) + 20px); transform:translateX(-50%); background:#fff; color:var(--bg);
     font-family:var(--mono); font-size:12px; padding:10px 16px; display:none; z-index:9999;}
+
+  /* ============ tab bar + fab ============ */
+  .tabbar{position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px;
+    background:#141414; border-top:1px solid var(--line); display:none; z-index:1200;
+    padding-bottom:env(safe-area-inset-bottom);}
+  .tabbar.on{display:flex;}
+  .tabbar button{flex:1; height:var(--tabh); background:none; border:none; color:var(--muted); cursor:pointer;
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; display:flex; flex-direction:column; gap:3px; align-items:center; justify-content:center;}
+  .tabbar button i{font-style:normal; font-size:16px; line-height:1;}
+  .tabbar button.on{color:#fff;}
+  .tabbar button.on i{color:var(--accent);}
+  .fab{position:fixed; bottom:calc(var(--tabh) + 16px + env(safe-area-inset-bottom));
+    right:max(16px, calc(50% - 224px)); width:54px; height:54px; background:var(--accent); color:#fff;
+    border:none; font-size:28px; font-weight:300; display:none; align-items:center; justify-content:center;
+    box-shadow:0 10px 24px rgba(0,0,0,.5); z-index:1200; cursor:pointer;}
+  .fab.on{display:flex;}
+
+  /* ============ map tab ============ */
+  #v-map{padding:0;}
+  #mainmap{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px;
+    height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom)); z-index:1;}
+  .map-overlay-top{position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+    width:calc(100% - 32px); max-width:448px; z-index:1100;}
+  .map-overlay-bottom{position:fixed; bottom:calc(var(--tabh) + 12px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+    width:calc(100% - 32px); max-width:448px; z-index:1100;}
+  .panel{background:rgba(20,20,20,.95); border:1px solid var(--line); padding:12px;}
+  .brand{font-family:var(--display); font-size:22px; letter-spacing:.06em; background:rgba(20,20,20,.95);
+    border:1px solid var(--line); padding:6px 12px 4px; display:inline-block;}
+  .demo-flag{font-family:var(--mono); font-size:9px; color:var(--bg); background:#e9c46a; padding:3px 6px; letter-spacing:.08em;}
+  .art{width:44px; height:44px; flex-shrink:0; background:var(--g,linear-gradient(135deg,#3a2a1a,#c98a3a));}
+  .wave{display:flex; gap:2px; align-items:flex-end; height:14px;}
+  .wave i{width:3px; background:var(--accent); animation:w .9s infinite ease-in-out alternate;}
+  .wave i:nth-child(1){height:40%} .wave i:nth-child(2){height:100%; animation-delay:.15s}
+  .wave i:nth-child(3){height:60%; animation-delay:.3s} .wave i:nth-child(4){height:85%; animation-delay:.45s}
+  @keyframes w{to{transform:scaleY(.35)}}
+
+  /* ============ feed rows ============ */
+  .frow{display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--line);}
+  .frow .t{font-family:var(--mono); font-size:10.5px; color:var(--muted); width:42px; flex-shrink:0;}
+  .frow .t.live{color:var(--accent);}
+  .av{width:36px; height:36px; border-radius:50%; flex-shrink:0; background:var(--g,linear-gradient(135deg,#333,#666));}
+  .fname{font-size:12.5px; font-weight:700;}
+  .fname span{font-weight:400; color:var(--muted); font-size:11px;}
+  .fsong{font-size:11.5px; color:var(--muted);}
+
+  /* ============ drops list ============ */
+  .seg{display:flex; border:1px solid var(--line); margin-top:14px;}
+  .seg div{flex:1; text-align:center; font-family:var(--mono); font-size:11px; padding:10px 4px; color:var(--muted); cursor:pointer;}
+  .seg div.on{background:#fff; color:var(--bg); font-weight:500;}
+  .dcard{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); padding:12px; margin-top:10px;}
+  .dcard.unlocked{border-left-color:var(--green);}
+  .dcard.expired{border-left-color:var(--line); opacity:.6;}
+  .dcard .st{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em;}
+  .empty{text-align:center; color:var(--muted); padding:40px 20px; border:1px dashed var(--line); margin-top:14px; font-size:13px; line-height:1.6;}
+
+  /* ============ profile ============ */
+  .sq-av{width:64px; height:64px; background:linear-gradient(135deg,#3b4a3a,#9dbf9e); flex-shrink:0;}
+  .stat{text-align:center;} .stat b{display:block; font-size:17px;} .stat span{font-family:var(--mono); font-size:9px; color:var(--muted); letter-spacing:.08em;}
+  .crow{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);}
+  .crow .rank{font-family:var(--display); font-size:24px; width:24px; flex-shrink:0;}
+  .crow .m{font-family:var(--mono); font-size:10px; color:var(--muted); flex-shrink:0;}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- ============ HOME ============ -->
-  <div class="view" id="v-home">
-    <div class="top"><span class="mono muted">ECHO · PROTOTYPE 0</span><span class="mono acc">BETA</span></div>
-    <div class="h h1" style="margin-top:26px">Drop a song<br>in the <span class="acc">real world</span></div>
-    <p class="hint" style="font-size:14px; margin-top:14px">Lock a song to a place. They can only open it by going there. No accounts, no install — the drop travels inside the link you send.</p>
-    <button class="btn" onclick="show('v-compose'); setTimeout(initComposeMap, 60)">DROP A SONG</button>
-    <button class="btn ghost" onclick="show('v-paste')">I RECEIVED A DROP LINK</button>
-    <div class="foot mono muted">v0 · 2 users · honor-system prototype</div>
+<!-- ================= MAP TAB ================= -->
+<div class="view" id="v-map">
+  <div id="mainmap"></div>
+  <div class="map-overlay-top">
+    <div class="rl">
+      <span class="brand">ECHO</span>
+      <div class="grow"></div>
+      <span class="demo-flag">VENUES = DEMO DATA</span>
+    </div>
+    <div class="chips" style="margin-top:8px">
+      <span class="chip sm on">LIVE</span><span class="chip sm">VENUES</span><span class="chip sm">FRIENDS</span><span class="chip sm">DROPS</span>
+    </div>
   </div>
+  <div class="map-overlay-bottom">
+    <div class="panel rl">
+      <div class="art"></div>
+      <div class="grow">
+        <div class="rl" style="gap:6px"><span class="mono acc" style="font-size:10px"><span class="pulse"></span>ON NOW</span><span class="mono muted" style="font-size:10px">CLUB NOX · 243</span></div>
+        <div class="ell" style="font-weight:700; font-size:13px">Spastik</div>
+        <div class="ell muted" style="font-size:11px">Plastikman</div>
+      </div>
+      <div class="wave"><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+</div>
 
-  <!-- ============ PASTE A RECEIVED LINK ============ -->
-  <div class="view" id="v-paste">
-    <div class="top"><button class="back" onclick="show('v-home')">← BACK</button></div>
+<!-- ================= FEED TAB ================= -->
+<div class="view" id="v-feed">
+  <div class="wrap">
+    <div class="rl"><div class="h h1">Now<br>Playing</div><div class="grow"></div><span class="demo-flag">DEMO DATA</span></div>
+    <div style="margin-top:16px">
+      <div class="frow" style="--g:linear-gradient(135deg,#b56576,#e56b6f)">
+        <span class="t live">21:39</span><div class="av"></div>
+        <div class="grow"><div class="fname">MARIA <span>Lisboa</span></div><div class="fsong ell">Fado da Madrugada — Carminho</div></div>
+        <div class="wave"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="frow" style="--g:linear-gradient(135deg,#5a3d1a,#d9a066)">
+        <span class="t live">21:35</span><div class="av"></div>
+        <div class="grow"><div class="fname">JONAS <span>at Tresor</span></div><div class="fsong ell">Acid Tracks — Phuture</div></div>
+        <div class="wave"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="frow" style="--g:linear-gradient(135deg,#3b4a3a,#9dbf9e)">
+        <span class="t">21:02</span><div class="av"></div>
+        <div class="grow"><div class="fname">LU <span>Roma</span></div><div class="fsong ell">Tezeta — Mulatu Astatke</div></div>
+        <span class="mono muted">↗</span>
+      </div>
+      <div class="frow" style="--g:linear-gradient(135deg,#2b2b2b,#7a7a7a)">
+        <span class="t">19:12</span><div class="av"></div>
+        <div class="grow"><div class="fname">FOUR TET <span>studio</span></div><div class="fsong ell">Alice — Alice Coltrane · 6× today</div></div>
+        <span class="mono muted">↗</span>
+      </div>
+      <div class="frow" style="--g:linear-gradient(135deg,#1d1d1d,#4c4c4c)">
+        <span class="t">18:40</span><div class="av"></div>
+        <div class="grow"><div class="fname">PANORAMA BAR <span>set started</span></div><div class="fsong ell">412 listening along</div></div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:16px">This feed is a preview of the live-listening layer (needs the Spotify integration phase). The Drops tab is the part that already works for real.</p>
+  </div>
+</div>
+
+<!-- ================= DROPS TAB ================= -->
+<div class="view" id="v-drops">
+  <div class="wrap">
+    <div class="rl"><div class="h h1">Drops</div><div class="grow"></div><span class="mono" style="color:var(--green)">● REAL — WORKS TODAY</span></div>
+    <div class="seg"><div class="on" id="seg-rec" onclick="dropsTab('rec')">RECEIVED</div><div id="seg-sent" onclick="dropsTab('sent')">SENT</div></div>
+    <div id="drops-list"></div>
+    <button class="btn" style="margin-top:18px" onclick="show('v-compose'); setTimeout(initComposeMap, 60)">＋ SEND A DROP</button>
+    <button class="btn ghost" onclick="show('v-paste')">I RECEIVED A DROP LINK</button>
+  </div>
+</div>
+
+<!-- ================= YOU TAB ================= -->
+<div class="view" id="v-you">
+  <div class="wrap">
+    <div class="rl">
+      <div class="sq-av"></div>
+      <div class="grow"><div class="h" style="font-size:36px" id="y-name">YOU</div><div class="mono muted" style="font-size:10px">EST. 2026 · ECHO PROTOTYPE</div></div>
+      <span class="demo-flag">DEMO</span>
+    </div>
+    <div class="rl" style="justify-content:space-around; margin-top:18px">
+      <div class="stat"><b>142</b><span>FOLLOWERS</span></div>
+      <div class="stat"><b>98</b><span>FOLLOWING</span></div>
+      <div class="stat" id="y-drops"><b>0</b><span>DROPS</span></div>
+    </div>
+    <div class="chips" style="margin-top:18px">
+      <span class="chip sm on"><span class="pulse" style="background:var(--bg)"></span>LIVE · FRIENDS</span>
+      <span class="chip sm">LOC · OFF</span>
+      <span class="chip sm">👻 GHOST</span>
+    </div>
+    <div class="h h3" style="margin:24px 0 4px; color:var(--accent)">Top of your charts · this week</div>
+    <div class="crow" style="--g:linear-gradient(135deg,#1f3a5f,#6ea8fe)"><span class="rank">1</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">NIGHTS</div><div class="ell fsong">Frank Ocean · 41 plays</div></div><span class="m">▲ 2</span></div>
+    <div class="crow" style="--g:linear-gradient(135deg,#5a1a1a,#c94b4b)"><span class="rank">2</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">CRANES IN THE SKY</div><div class="ell fsong">Solange · 27 plays</div></div><span class="m">NEW</span></div>
+    <div class="crow" style="--g:linear-gradient(135deg,#1a2a1a,#5ba36a)"><span class="rank">3</span><div class="art" style="width:36px;height:36px"></div><div class="grow"><div class="ell" style="font-size:12.5px;font-weight:700">PINK + WHITE</div><div class="ell fsong">Frank Ocean · 19 plays</div></div><span class="m">▼ 1</span></div>
+    <p class="hint" style="margin-top:16px">Charts and sharing controls are placeholders — they light up when we connect Spotify accounts in the next phase.</p>
+  </div>
+</div>
+
+<!-- ================= FLOW: PASTE LINK ================= -->
+<div class="view" id="v-paste">
+  <div class="wrap">
+    <div class="top"><button class="back" onclick="show('v-drops')">← BACK</button></div>
     <div class="h h2" style="margin-top:14px">Open a drop</div>
     <p class="hint">Normally you just tap the link they sent you. If it didn't open, paste it here.</p>
     <input class="field" id="paste-link" placeholder="https://…#d=…" autocapitalize="off" autocorrect="off">
     <div class="err" id="paste-err">That doesn't look like a drop link.</div>
     <button class="btn" onclick="openPasted()">OPEN IT</button>
   </div>
+</div>
 
-  <!-- ============ COMPOSE ============ -->
-  <div class="view" id="v-compose">
-    <div class="top"><button class="back" onclick="show('v-home')">← BACK</button><span class="mono muted">NEW DROP</span></div>
+<!-- ================= FLOW: COMPOSE ================= -->
+<div class="view" id="v-compose">
+  <div class="wrap">
+    <div class="top"><button class="back" onclick="show('v-drops')">← BACK</button><span class="mono muted">NEW DROP</span></div>
 
     <div class="step">
       <div class="tag"><span class="num">01</span><span class="h h3">The song</span></div>
@@ -173,9 +324,11 @@
     <div class="err" id="c-err" style="margin-top:16px"></div>
     <button class="btn" style="margin-top:20px" onclick="printTicket()">PRINT THE TICKET →</button>
   </div>
+</div>
 
-  <!-- ============ SHARE ============ -->
-  <div class="view" id="v-share">
+<!-- ================= FLOW: SHARE ================= -->
+<div class="view" id="v-share">
+  <div class="wrap">
     <div class="top"><button class="back" onclick="show('v-compose')">← EDIT</button><span class="mono muted">READY</span></div>
     <div class="ticket">
       <div class="row"><span class="h" style="font-size:34px">ADMIT ONE</span><span style="font-size:22px">🔒</span></div>
@@ -187,13 +340,15 @@
     <button class="btn white" onclick="shareLink()">SHARE THE DROP</button>
     <button class="btn ghost" onclick="copyLink()">COPY LINK</button>
     <div class="linkbox" id="s-link"></div>
-    <button class="btn ghost" style="margin-top:26px" onclick="resetCompose()">+ NEW DROP</button>
+    <button class="btn ghost" style="margin-top:26px" onclick="show('v-drops'); renderDrops()">DONE</button>
   </div>
+</div>
 
-  <!-- ============ RECEIVE: LOCKED ============ -->
-  <div class="view" id="v-locked">
-    <div class="top"><span class="mono muted">ECHO · DROP</span><span class="mono acc" id="r-countdown"></span></div>
-    <div class="ticket" style="margin-top:14px">
+<!-- ================= FLOW: RECEIVE LOCKED ================= -->
+<div class="view" id="v-locked">
+  <div class="wrap">
+    <div class="top"><button class="back" onclick="goHome()">← APP</button><span class="mono acc" id="r-countdown"></span></div>
+    <div class="ticket" style="margin-top:10px">
       <div class="row"><span class="h" style="font-size:34px">ADMIT ONE</span><span style="font-size:22px">🔒</span></div>
       <div class="mono" style="opacity:.9; margin-top:2px" id="r-sub"></div>
       <div class="perf"></div>
@@ -207,10 +362,12 @@
     <p class="hint center"><a href="#" id="r-directions" target="_blank">Open in Maps for directions ↗</a></p>
     <div class="center" id="r-dev" style="display:none; margin-top:8px"><button class="back" onclick="unlock(true)">[dev] simulate arrival</button></div>
   </div>
+</div>
 
-  <!-- ============ RECEIVE: UNLOCKED ============ -->
-  <div class="view" id="v-unlocked">
-    <div class="top"><span class="mono muted">ECHO · DROP</span><span class="mono" style="color:#3ddc84">UNLOCKED ✓</span></div>
+<!-- ================= FLOW: UNLOCKED ================= -->
+<div class="view" id="v-unlocked">
+  <div class="wrap">
+    <div class="top"><button class="back" onclick="goHome()">← APP</button><span class="mono" style="color:var(--green)">UNLOCKED ✓</span></div>
     <div class="center"><div class="bigicon">🎉</div><div class="h h2">You made it</div></div>
     <div class="ticket white">
       <div class="row"><span class="h" style="font-size:30px" id="u-title">THE SONG</span><span style="font-size:20px">🔓</span></div>
@@ -220,12 +377,14 @@
     </div>
     <div class="note-box" id="u-note" style="display:none"></div>
     <a class="btn" id="u-play" href="#" target="_blank">▶ PLAY ON SPOTIFY</a>
-    <p class="hint center">This drop stays unlocked on this phone — replay it any time.</p>
+    <p class="hint center">This drop stays unlocked on this phone — replay it any time from the Drops tab.</p>
   </div>
+</div>
 
-  <!-- ============ RECEIVE: EXPIRED ============ -->
-  <div class="view" id="v-expired">
-    <div class="top"><span class="mono muted">ECHO · DROP</span></div>
+<!-- ================= FLOW: EXPIRED ================= -->
+<div class="view" id="v-expired">
+  <div class="wrap">
+    <div class="top"><button class="back" onclick="goHome()">← APP</button></div>
     <div class="center" style="margin-top:40px">
       <div class="bigicon">💨</div>
       <div class="h h2">This drop vanished</div>
@@ -233,25 +392,51 @@
       <p class="hint">You never found out which song it was. Ask them to drop it again.</p>
     </div>
   </div>
+</div>
 
-  <!-- ============ BROKEN LINK ============ -->
-  <div class="view" id="v-broken">
-    <div class="top"><span class="mono muted">ECHO</span></div>
+<!-- ================= FLOW: BROKEN ================= -->
+<div class="view" id="v-broken">
+  <div class="wrap">
+    <div class="top"><button class="back" onclick="goHome()">← APP</button></div>
     <div class="center" style="margin-top:40px">
       <div class="bigicon">🧩</div>
       <div class="h h2">Link didn't decode</div>
-      <p class="hint">Ask the sender to re-share it, or paste the full link on the home screen.</p>
-      <button class="btn ghost" onclick="show('v-home')">HOME</button>
+      <p class="hint">Ask the sender to re-share it, or paste the full link from the Drops tab.</p>
     </div>
   </div>
-
 </div>
+
+<!-- ================= CHROME ================= -->
+<button class="fab" id="fab" onclick="show('v-compose'); setTimeout(initComposeMap, 60)">+</button>
+<nav class="tabbar" id="tabbar">
+  <button id="tb-map" onclick="tab('v-map')"><i>▣</i>MAP</button>
+  <button id="tb-feed" onclick="tab('v-feed')"><i>≡</i>FEED</button>
+  <button id="tb-drops" onclick="tab('v-drops')"><i>◈</i>DROPS</button>
+  <button id="tb-you" onclick="tab('v-you')"><i>●</i>YOU</button>
+</nav>
 <div class="toast" id="toast"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 /* ================= helpers ================= */
 const $ = id => document.getElementById(id);
-function show(v){ document.querySelectorAll('.view').forEach(x=>x.classList.remove('on')); $(v).classList.add('on'); window.scrollTo(0,0); }
+const TAB_VIEWS = {'v-map':'tb-map','v-feed':'tb-feed','v-drops':'tb-drops','v-you':'tb-you'};
+const FAB_VIEWS = ['v-map','v-feed','v-drops'];
+function show(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  $(v).classList.add('on'); window.scrollTo(0,0);
+  const isTab = v in TAB_VIEWS;
+  $('tabbar').classList.toggle('on', isTab || ['v-locked','v-unlocked','v-expired','v-broken'].includes(v));
+  $('fab').classList.toggle('on', FAB_VIEWS.includes(v));
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('on'));
+  if(isTab) $(TAB_VIEWS[v]).classList.add('on');
+  else if(['v-locked','v-unlocked','v-expired'].includes(v)) $('tb-drops').classList.add('on');
+}
+function tab(v){
+  show(v);
+  if(v==='v-map') setTimeout(initMainMap, 60);
+  if(v==='v-drops') renderDrops();
+}
+function goHome(){ history.replaceState(null,'',location.pathname+location.search); tab('v-drops'); }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 1800); }
 function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function dec(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return JSON.parse(decodeURIComponent(escape(atob(s)))); }
@@ -260,20 +445,98 @@ function haversine(a,b,c,d){ const R=6371000,rad=x=>x*Math.PI/180; const dLat=ra
 function fmtDist(m){ return m>=1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m'; }
 function fmtLeft(ms){ if(ms<=0) return 'EXPIRED'; const h=Math.floor(ms/3600000), d=Math.floor(h/24);
   if(d>=1) return d+'D '+(h-d*24)+'H LEFT'; const min=Math.floor((ms%3600000)/60000); return h+'H '+min+'M LEFT'; }
+function fmtExp(x){ return new Date(x).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).toUpperCase(); }
 const DARK_TILES='https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
 const TILE_OPTS={maxZoom:18, attribution:'&copy; Esri &copy; OSM'};
 function trackIdFrom(url){ const m=(url||'').match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/); return m?m[1]:null; }
-
-/* ================= oEmbed (song title + art, no auth needed) ================= */
 async function fetchMeta(url){
   try{ const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent(url));
     if(!r.ok) return null; const j=await r.json(); return {title:j.title||'', thumb:j.thumbnail_url||''};
   }catch(e){ return null; }
 }
 
+/* ================= local storage of drops ================= */
+function loadList(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ return []; } }
+function saveList(k,v){ localStorage.setItem(k, JSON.stringify(v.slice(-50))); }
+function rememberSent(p, link){
+  const l=loadList('echo_sent');
+  if(!l.some(x=>x.link===link)) l.push({t:p.t, x:p.x, link, at:Date.now()});
+  saveList('echo_sent', l);
+}
+function rememberReceived(p, link){
+  const l=loadList('echo_received');
+  if(!l.some(x=>x.link===link)) l.push({f:p.f, t:p.t, x:p.x, link, at:Date.now()});
+  saveList('echo_received', l);
+}
+function dropKeyFor(link){ const i=link.indexOf('#d='); return 'echo_unlocked_'+link.slice(i, i+60); }
+
+/* ================= drops tab ================= */
+let dropsMode='rec';
+function dropsTab(m){ dropsMode=m; $('seg-rec').classList.toggle('on',m==='rec'); $('seg-sent').classList.toggle('on',m==='sent'); renderDrops(); }
+function renderDrops(){
+  const box=$('drops-list'); box.innerHTML='';
+  const list = dropsMode==='rec' ? loadList('echo_received').slice().reverse() : loadList('echo_sent').slice().reverse();
+  $('y-drops').innerHTML='<b>'+(loadList('echo_sent').length+loadList('echo_received').length)+'</b><span>DROPS</span>';
+  if(!list.length){
+    box.innerHTML='<div class="empty">'+(dropsMode==='rec'
+      ? 'No drops received on this phone yet.<br>When someone sends you a drop link, open it and it will live here.'
+      : 'Nothing sent yet.<br>Hit ＋ SEND A DROP to lock a song to a place.')+'</div>';
+    return;
+  }
+  list.forEach(d=>{
+    const unlocked = dropsMode==='rec' && localStorage.getItem(dropKeyFor(d.link));
+    const expired = Date.now()>d.x && !unlocked;
+    const cls = unlocked?'unlocked':(expired?'expired':'');
+    const st = unlocked?'<span class="st" style="color:var(--green)">🔓 UNLOCKED · REPLAY</span>'
+             : expired?'<span class="st muted">💨 VANISHED</span>'
+             : '<span class="st acc">🔒 LOCKED · '+fmtLeft(d.x-Date.now())+'</span>';
+    const who = dropsMode==='rec' ? 'FROM '+(d.f||'?').toUpperCase() : 'FOR '+(d.t||'?').toUpperCase();
+    const el=document.createElement('div'); el.className='dcard '+cls;
+    el.innerHTML='<div class="rl"><div class="grow"><div style="font-weight:700; font-size:14px">'+who+'</div>'+
+      '<div class="mono muted" style="font-size:9.5px; margin-top:3px">EXP '+fmtExp(d.x)+'</div></div>'+st+'</div>';
+    el.onclick=()=>{ if(dropsMode==='rec'){ location.href=d.link; location.reload(); }
+      else { navigator.clipboard.writeText(d.link).then(()=>toast('LINK COPIED — SEND IT AGAIN')); } };
+    box.appendChild(el);
+  });
+  if(dropsMode==='sent') box.insertAdjacentHTML('beforeend','<p class="hint">Tap a sent drop to copy its link again.</p>');
+}
+
+/* ================= main map tab ================= */
+let mainmap=null;
+function initMainMap(){
+  if(mainmap){ mainmap.invalidateSize(); return; }
+  mainmap=L.map('mainmap',{zoomControl:false}).setView([40.4168,-3.7038],14);
+  L.tileLayer(DARK_TILES,TILE_OPTS).addTo(mainmap);
+  const seed=(lat,lng)=>{
+    const venues=[
+      {n:'CLUB NOX', s:'Spastik — Plastikman', c:243, dx:.006, dy:.004, live:true},
+      {n:'BAR MARY', s:'Tezeta — Mulatu Astatke', c:58, dx:-.007, dy:.003, live:true},
+      {n:'LA CAVERNA', s:'set starts 23:00', c:0, dx:.003, dy:-.007, live:false}
+    ];
+    venues.forEach(v=>{
+      const m=L.circleMarker([lat+v.dy,lng+v.dx],{radius:9, color:v.live?'#ff2e63':'#555', weight:2, fillColor:v.live?'#ff2e63':'#333', fillOpacity:.85}).addTo(mainmap);
+      m.bindPopup('<b>'+v.n+'</b> <span style="color:#e9c46a;font-size:9px">DEMO</span><br><span style="color:'+(v.live?'#ff2e63':'#8c8c8c')+'">'+(v.live?'● LIVE — ':'')+v.s+'</span>'+(v.c?'<br><span style="color:#8c8c8c">'+v.c+' listening</span>':''));
+    });
+    const fm=L.circleMarker([lat-.004,lng-.005],{radius:8, color:'#fff', weight:2, fillColor:'#4aa3ff', fillOpacity:1}).addTo(mainmap);
+    fm.bindPopup('<b>MARIA</b> <span style="color:#e9c46a;font-size:9px">DEMO</span><br><span style="color:#ff2e63">● listening live</span><br>Fado da Madrugada — Carminho');
+    loadList('echo_received').forEach(d=>{
+      try{ const p=dec(d.link.slice(d.link.indexOf('#d=')+3));
+        const un=localStorage.getItem(dropKeyFor(d.link));
+        const mk=L.marker([p.la,p.ln]).addTo(mainmap);
+        mk.bindPopup('<b>'+(un?'🔓':'🔒')+' Drop from '+(p.f||'?')+'</b><br>'+(un?'Unlocked — open it from the Drops tab':'Walk there to unlock'));
+      }catch(e){}
+    });
+  };
+  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(
+    p=>{ mainmap.setView([p.coords.latitude,p.coords.longitude],14);
+      L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:7,color:'#fff',weight:2,fillColor:'#4aa3ff',fillOpacity:1}).addTo(mainmap).bindPopup('You');
+      seed(p.coords.latitude,p.coords.longitude); },
+    ()=>seed(40.4168,-3.7038), {timeout:5000});
+  else seed(40.4168,-3.7038);
+}
+
 /* ================= compose ================= */
 let cmap=null, cmarker=null, ccircle=null, cpos=null, cradius=200, cexp=24, csong=null;
-
 function initComposeMap(){
   if(cmap){ cmap.invalidateSize(); return; }
   cmap=L.map('map',{zoomControl:false}).setView([40.4168,-3.7038],13);
@@ -340,9 +603,10 @@ function printTicket(){
   const payload={v:1, f:from, t:to, m:msg, s:csong,
     la:+cpos.lat.toFixed(5), ln:+cpos.lng.toFixed(5), r:cradius, x:Date.now()+cexp*3600000};
   const link=location.origin+location.pathname+'#d='+enc(payload);
+  rememberSent(payload, link);
   $('s-sub').textContent=('A SONG FROM '+from+' · FOR '+to).toUpperCase();
   $('s-radius').textContent='VALID WITHIN '+(cradius>=1000?(cradius/1000)+' KM':cradius+' M');
-  $('s-exp').textContent='EXP '+new Date(payload.x).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).toUpperCase();
+  $('s-exp').textContent='EXP '+fmtExp(payload.x);
   $('s-link').textContent=link; window._shareLink=link;
   show('v-share');
 }
@@ -351,32 +615,27 @@ function shareLink(){
   else copyLink();
 }
 function copyLink(){ navigator.clipboard.writeText(window._shareLink).then(()=>toast('LINK COPIED')); }
-function resetCompose(){ location.hash=''; location.reload(); }
 
 /* ================= receive ================= */
 let drop=null, rmap=null, youMarker=null, watchId=null, unlocked=false;
-
 function openPasted(){
   const v=$('paste-link').value; const i=v.indexOf('#d=');
   if(i<0){ $('paste-err').style.display='block'; return; }
   location.hash=v.slice(i); location.reload();
 }
 function dropKey(){ return 'echo_unlocked_'+(location.hash||'').slice(0,60); }
-
 function initReceive(){
   try{ drop=dec(location.hash.slice(3)); }catch(e){ show('v-broken'); return; }
   if(!drop || !drop.s || drop.la==null){ show('v-broken'); return; }
-
-  if(localStorage.getItem(dropKey())){ unlock(false); return; }          // already unlocked before
+  rememberReceived(drop, location.origin+location.pathname+location.hash);
+  if(localStorage.getItem(dropKey())){ unlock(false); return; }
   if(Date.now()>drop.x){ $('e-sub').textContent=(drop.f||'Someone')+' dropped you a song. It expired before you got there.'; show('v-expired'); return; }
-
   $('r-sub').textContent=('A SONG FROM '+(drop.f||'?')+' · FOR '+(drop.t||'YOU')).toUpperCase();
   $('r-zone').textContent='ZONE '+(drop.r>=1000?(drop.r/1000)+' KM':drop.r+' M');
   $('r-directions').href='https://maps.apple.com/?daddr='+drop.la+','+drop.ln;
   if(location.search.indexOf('dev=1')>=0) $('r-dev').style.display='block';
   tickCountdown(); setInterval(tickCountdown,30000);
   show('v-locked');
-
   setTimeout(()=>{
     rmap=L.map('rmap',{zoomControl:false}).setView([drop.la,drop.ln],14);
     L.tileLayer(DARK_TILES,TILE_OPTS).addTo(rmap);
@@ -387,7 +646,7 @@ function initReceive(){
 function tickCountdown(){
   const left=drop.x-Date.now();
   $('r-countdown').textContent=fmtLeft(left);
-  $('r-exp').textContent='EXP '+new Date(drop.x).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).toUpperCase();
+  $('r-exp').textContent='EXP '+fmtExp(drop.x);
   if(left<=0 && !unlocked){ $('e-sub').textContent=(drop.f||'Someone')+' dropped you a song. It expired before you got there.'; show('v-expired'); }
 }
 function startWatch(){
@@ -425,7 +684,8 @@ async function unlock(fresh){
 }
 
 /* ================= boot ================= */
-if(location.hash.startsWith('#d=')) initReceive(); else show('v-home');
+if(location.hash.startsWith('#d=')) initReceive();
+else { show('v-map'); setTimeout(initMainMap, 80); }
 </script>
 </body>
 </html>
